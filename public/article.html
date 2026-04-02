@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title id="metaTitle">Loading Article... | ZNN</title>
+  <meta name="description" id="metaDesc" content="Read the latest news on ZNN.">
+  <meta property="og:title" id="ogTitle" content="Loading...">
+  <meta property="og:description" id="ogDesc" content="">
+  <meta property="og:image" id="ogImage" content="">
+  <meta name="twitter:title" id="twTitle" content="">
+  <link rel="icon" href="/logo.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="ads-injected.js"></script>
+  <script type="application/ld+json" id="articleSchema">{}</script>
+  <style>
+    /* Reading Progress Bar */
+    .progress-bar {
+      position: fixed; top: 0; left: 0; height: 3px; z-index: 9999;
+      background: linear-gradient(90deg, var(--accent), #ff6b6b);
+      width: 0%; transition: width 0.1s linear;
+    }
+
+    /* Article Layout */
+    .article-wrap { max-width: 780px; margin: 0 auto; padding: 32px 20px 60px; }
+    
+    .article-meta {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 20px; font-size: 13px; color: var(--txt-muted);
+    }
+    .article-meta .cat-badge {
+      background: var(--accent); color: #fff; padding: 4px 12px;
+      border-radius: 4px; font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .article-meta .breaking-badge {
+      background: #ff3b30; color: #fff; padding: 4px 10px;
+      border-radius: 4px; font-size: 10px; font-weight: 800;
+      text-transform: uppercase; animation: pulse 2s infinite;
+    }
+    .article-meta .dot { color: var(--border); }
+
+    .article-title {
+      font-size: clamp(28px, 5vw, 42px); font-weight: 900;
+      line-height: 1.15; letter-spacing: -0.03em;
+      margin-bottom: 16px; color: var(--txt);
+    }
+    .article-subtitle {
+      font-size: 18px; line-height: 1.6; color: var(--txt-secondary);
+      margin-bottom: 28px; font-weight: 400;
+    }
+
+    .article-hero {
+      width: 100%; border-radius: 14px; overflow: hidden;
+      margin-bottom: 32px; background: #f0f0f0;
+      max-height: 460px;
+    }
+    .article-hero img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+
+    /* Share Bar */
+    .share-bar {
+      display: flex; gap: 10px; margin-bottom: 32px;
+      padding-bottom: 24px; border-bottom: 1px solid var(--border);
+    }
+    .share-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1.5px solid var(--border); color: var(--txt-secondary);
+      font-size: 15px; transition: var(--ease); cursor: pointer;
+    }
+    .share-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+    .share-btn.twitter:hover { border-color: #1DA1F2; color: #1DA1F2; }
+    .share-btn.facebook:hover { border-color: #4267B2; color: #4267B2; }
+    .share-btn.whatsapp:hover { border-color: #25D366; color: #25D366; }
+
+    /* Article Body */
+    .article-body {
+      font-size: 17px; line-height: 1.85; color: #222;
+      letter-spacing: 0.01em;
+    }
+    .article-body p { margin-bottom: 24px; }
+    .article-body blockquote {
+      border-left: 4px solid var(--accent); margin: 28px 0;
+      padding: 16px 24px; font-style: italic; color: var(--txt-secondary);
+      background: var(--bg-alt); border-radius: 0 8px 8px 0;
+    }
+
+    /* Source Credit */
+    .article-source {
+      margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border);
+      font-size: 13px; color: var(--txt-muted);
+    }
+    .article-source a { color: var(--accent); font-weight: 600; }
+
+    /* Views Counter */
+    .article-views {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--txt-muted); margin-top: 8px;
+    }
+    .article-views i { font-size: 12px; }
+
+    /* Related Grid */
+    .related-section { margin-top: 60px; }
+    .related-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+    }
+    .related-card {
+      cursor: pointer; border-radius: 12px; overflow: hidden;
+      border: 1px solid var(--border); transition: var(--ease);
+    }
+    .related-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+    .related-card img { width: 100%; height: 160px; object-fit: cover; }
+    .related-card__body { padding: 14px 16px; }
+    .related-card__cat {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      color: var(--accent); letter-spacing: 0.04em; margin-bottom: 6px;
+    }
+    .related-card__title {
+      font-size: 15px; font-weight: 700; line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .article-wrap { padding: 20px 16px 40px; }
+      .article-title { font-size: 26px; }
+      .article-subtitle { font-size: 16px; }
+      .related-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="wrap hdr__inner">
+      <a href="/" class="hdr__btn"><i class="fas fa-arrow-left"></i></a>
+      <a href="/" class="hdr__brand"><img src="/logo.png" alt="ZNN" class="hdr__logo"></a>
+      <a href="/" class="hdr__btn"><i class="fas fa-home"></i></a>
+    </div>
+  </header>
+
+  <!-- Article Content -->
+  <main class="article-wrap" id="articleMain">
+    <!-- Skeleton while loading -->
+    <div id="articleSkeleton">
+      <div class="skel-card" style="height:18px;width:120px;margin-bottom:16px;border-radius:4px"></div>
+      <div class="skel-card skel-hero" style="height:40px;margin-bottom:12px;border-radius:6px"></div>
+      <div class="skel-card" style="height:20px;width:90%;margin-bottom:28px;border-radius:4px"></div>
+      <div class="skel-card skel-hero" style="height:380px;margin-bottom:32px"></div>
+      <div class="skel-card" style="height:16px;margin-bottom:12px;border-radius:4px"></div>
+      <div class="skel-card" style="height:16px;width:85%;margin-bottom:12px;border-radius:4px"></div>
+      <div class="skel-card" style="height:16px;width:70%;border-radius:4px"></div>
+    </div>
+
+    <!-- Actual Article (hidden until loaded) -->
+    <article id="articleContent" style="display:none" class="fade-in">
+      <div class="article-meta" id="artMeta"></div>
+      <h1 class="article-title" id="artTitle"></h1>
+      <p class="article-subtitle" id="artSubtitle"></p>
+
+      <div class="article-hero" id="artHero">
+        <img id="artImg" src="" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504711434969-e33886168d5c?w=800'">
+      </div>
+
+      <!-- Share Bar -->
+      <div class="share-bar">
+        <button class="share-btn twitter" title="Share on X"><i class="fab fa-x-twitter"></i></button>
+        <button class="share-btn facebook" title="Share on Facebook"><i class="fab fa-facebook-f"></i></button>
+        <button class="share-btn whatsapp" title="Share on WhatsApp"><i class="fab fa-whatsapp"></i></button>
+        <button class="share-btn copy-link" title="Copy Link"><i class="fas fa-link"></i></button>
+      </div>
+
+      <!-- Body -->
+      <div class="article-body" id="artBody"></div>
+
+      <!-- Source -->
+      <div class="article-source" id="artSource"></div>
+      <div class="article-views" id="artViews"></div>
+    </article>
+
+    <!-- Related Stories -->
+    <div class="related-section" id="relatedSection" style="display:none">
+      <div class="sec-hd"><h2>Related Stories</h2></div>
+      <div class="related-grid" id="relatedGrid"></div>
+    </div>
+
+    <!-- Ad Slot -->
+    <div id="sidebar-ads"></div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="ftr">
+    <div class="wrap ftr__bot">&copy; 2026 ZNN – Zone News Network. All rights reserved.</div>
+  </footer>
+
+  <button class="s2t" id="s2t"><i class="fas fa-arrow-up"></i></button>
+
+  <script>
+  /* ==========================================================
+     ZNN – Article Page  |  Full Article v2 (ID-based)
+     ========================================================== */
+  document.addEventListener("DOMContentLoaded", () => {
+    const FALLBACK_IMG = 'https://images.unsplash.com/photo-1504711434969-e33886168d5c?w=800';
+    const progressBar = document.getElementById("progressBar");
+    const s2t = document.getElementById("s2t");
+
+    /* ---------- SCROLL PROGRESS ---------- */
+    window.addEventListener("scroll", () => {
+      const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      if (progressBar) progressBar.style.width = ((scrollY / h) * 100) + "%";
+      if (s2t) s2t.classList.toggle("s2t--on", scrollY > 400);
+    });
+    if (s2t) s2t.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+    /* ---------- SHARE BUTTONS ---------- */
+    document.querySelectorAll(".share-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const url = location.href;
+        const t = document.getElementById("artTitle")?.innerText || "";
+        let u = "";
+        if (btn.classList.contains("twitter"))  u = `https://twitter.com/intent/tweet?text=${encodeURIComponent(t)}&url=${encodeURIComponent(url)}`;
+        if (btn.classList.contains("facebook")) u = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        if (btn.classList.contains("whatsapp")) u = `https://api.whatsapp.com/send?text=${encodeURIComponent(t+" "+url)}`;
+        if (btn.classList.contains("copy-link")) {
+          navigator.clipboard.writeText(url).then(() => {
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => btn.innerHTML = '<i class="fas fa-link"></i>', 2000);
+          });
+          return;
+        }
+        if (u) window.open(u, "_blank", "width=600,height=400");
+      });
+    });
+
+    /* ---------- LOAD ARTICLE ---------- */
+    async function loadArticle() {
+      const params = new URLSearchParams(location.search);
+      const id = params.get("id");
+      const slug = params.get("s");
+      let article = null;
+
+      // 1. Try fetching by ID
+      if (id && window.supabaseClient) {
+        try {
+          const { data, error } = await window.supabaseClient.from('news').select('*').eq('id', id).single();
+          if (!error) article = data;
+        } catch(e) { console.error("Supabase by ID:", e); }
+      }
+
+      // 2. Try fetching by slug
+      if (!article && slug && window.supabaseClient) {
+        try {
+          const { data, error } = await window.supabaseClient.from('news').select('*').eq('slug', slug).single();
+          if (!error) article = data;
+        } catch(e) { console.error("Supabase by slug:", e); }
+      }
+
+      // 3. Fallback to localStorage
+      if (!article) {
+        const raw = localStorage.getItem("znn_article");
+        if (raw) try { article = JSON.parse(raw); } catch(e) {}
+      }
+
+      // Hide skeleton, show content
+      document.getElementById("articleSkeleton").style.display = "none";
+      document.getElementById("articleContent").style.display = "block";
+
+      if (!article) {
+        document.getElementById("artTitle").innerText = "Article Not Found";
+        document.getElementById("artSubtitle").innerText = "This story may have been moved or removed.";
+        document.getElementById("artHero").style.display = "none";
+        return;
+      }
+
+      // Render article
+      renderArticle(article);
+
+      // Track view
+      if (article.id && window.supabaseClient) {
+        window.supabaseClient.rpc('increment_views', { row_id: article.id }).then(({ error }) => {
+          if (error) {
+            window.supabaseClient.from('news').select('views').eq('id', article.id).single().then(({ data }) => {
+              if (data) window.supabaseClient.from('news').update({ views: (data.views || 0) + 1 }).eq('id', article.id).catch(console.error);
+            });
+          }
+        }).catch(console.error);
+      }
+
+      // Load related
+      loadRelated(article.category, article.id);
+    }
+
+    function renderArticle(a) {
+      // Meta badges
+      const metaEl = document.getElementById("artMeta");
+      let metaHTML = '';
+      if (a.is_breaking) metaHTML += '<span class="breaking-badge">BREAKING</span>';
+      metaHTML += `<span class="cat-badge">${esc(a.category || 'NEWS')}</span>`;
+      metaHTML += `<span class="dot">·</span>`;
+      metaHTML += `<span>${esc(a.source || 'ZNN')}</span>`;
+      metaHTML += `<span class="dot">·</span>`;
+      metaHTML += `<span>${timeAgo(a.created_at)}</span>`;
+      metaEl.innerHTML = metaHTML;
+
+      // Title & subtitle
+      document.getElementById("artTitle").innerText = a.title;
+      document.getElementById("artSubtitle").innerText = a.description || "";
+
+      // Image
+      const img = document.getElementById("artImg");
+      img.src = a.image_url || a.imageUrl || FALLBACK_IMG;
+      img.alt = a.title;
+
+      // Body content
+      const bodyEl = document.getElementById("artBody");
+      if (a.full_content) {
+        let body = a.full_content;
+        if (!body.includes("<p>")) body = body.split("\n\n").map(p => `<p>${p.trim()}</p>`).join("");
+        bodyEl.innerHTML = body;
+      } else {
+        // Create rich body from description
+        const desc = a.description || "";
+        bodyEl.innerHTML = `
+          <p>${esc(desc)}</p>
+          <p>This article was sourced from <strong>${esc(a.source || 'ZNN')}</strong> and brought to you by Zone News Network. 
+          For the complete original coverage, visit the source link below.</p>
+        `;
+      }
+
+      // Source link
+      const sourceEl = document.getElementById("artSource");
+      if (a.url) {
+        sourceEl.innerHTML = `<p>Source: <strong>${esc(a.source || 'External')}</strong> · <a href="${a.url}" target="_blank" rel="noopener">Read Original →</a></p>`;
+      } else {
+        sourceEl.innerHTML = `<p>Source: <strong>${esc(a.source || 'ZNN')}</strong></p>`;
+      }
+
+      // Views
+      const viewsEl = document.getElementById("artViews");
+      viewsEl.innerHTML = `<i class="fas fa-eye"></i> ${formatViews(a.views || 0)} views`;
+
+      // SEO
+      document.title = `${a.title} | ZNN`;
+      setMeta("metaDesc", a.description);
+      setMeta("ogTitle", a.title);
+      setMeta("ogDesc", a.description);
+      setMeta("ogImage", a.image_url || a.imageUrl);
+      setMeta("twTitle", a.title);
+      injectSchema(a);
+    }
+
+    /* ---------- RELATED ---------- */
+    async function loadRelated(category, excludeId) {
+      try {
+        if (!window.supabaseClient) return;
+        let query = window.supabaseClient.from('news').select('*');
+        if (category) query = query.ilike('category', category);
+
+        const { data, error } = await query.limit(10);
+        let arr = Array.isArray(data) ? data : [];
+        
+        // Exclude current article
+        if (excludeId) arr = arr.filter(a => a.id !== excludeId);
+        arr = arr.slice(0, 4);
+
+        if (arr.length > 0) {
+          document.getElementById("relatedSection").style.display = "block";
+          document.getElementById("relatedGrid").innerHTML = arr.map(a => `
+            <div class="related-card" onclick="openArticle(${safeJSON(a)})">
+              <img src="${a.image_url || FALLBACK_IMG}" alt="${esc(a.title)}" 
+                   onerror="this.onerror=null;this.src='${FALLBACK_IMG}'" loading="lazy">
+              <div class="related-card__body">
+                <div class="related-card__cat">${esc(a.category || 'NEWS')}</div>
+                <div class="related-card__title">${esc(a.title)}</div>
+              </div>
+            </div>
+          `).join("");
+        }
+      } catch(e) { console.error("Supabase Related:", e); }
+    }
+
+    /* ---------- UTILS ---------- */
+    window.openArticle = function(a) {
+      if (a.id) {
+        if (window.supabaseClient) window.supabaseClient.rpc('increment_views', { row_id: a.id }).catch(console.error);
+        window.location.href = `/article.html?id=${a.id}`;
+      } else {
+        localStorage.setItem("znn_article", JSON.stringify(a));
+        window.location.href = "article.html";
+      }
+    };
+    function esc(s) { const d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+    function safeJSON(a) { return JSON.stringify(a).replace(/'/g, "&apos;"); }
+    function setMeta(id, v) { const e = document.getElementById(id); if (e && v) e.setAttribute("content", v); }
+    function timeAgo(d) {
+      if (!d) return "Just now";
+      const diff = Math.floor((Date.now() - new Date(d)) / 60000);
+      if (diff < 1) return "Just now";
+      if (diff < 60) return diff + "m ago";
+      if (diff < 1440) return Math.floor(diff / 60) + "h ago";
+      return Math.floor(diff / 1440) + "d ago";
+    }
+    function formatViews(n) {
+      if (!n) return '0';
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+      return n.toString();
+    }
+    function injectSchema(a) {
+      const el = document.getElementById("articleSchema");
+      if (!el) return;
+      el.textContent = JSON.stringify({
+        "@context": "https://schema.org", "@type": "NewsArticle",
+        "headline": a.title, "image": [a.image_url || a.imageUrl],
+        "datePublished": (a.created_at || new Date().toISOString()).split("T")[0],
+        "author": { "@type": "Person", "name": a.author || "ZNN Editorial" },
+        "publisher": { "@type": "Organization", "name": "ZNN – Zone News Network", "logo": { "@type": "ImageObject", "url": "/logo.png" } },
+        "description": a.description
+      });
+    }
+
+    /* ---------- INIT ---------- */
+    loadArticle();
+  });
+  </script>
+</body>
+</html>

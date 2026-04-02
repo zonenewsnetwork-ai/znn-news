@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ZNN Admin Login</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
+    .box {
+      background: #111;
+      padding: 40px;
+      border-radius: 12px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .logo {
+      font-size: 28px;
+      margin-bottom: 10px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+    h3 {
+      margin-bottom: 20px;
+      color: #ccc;
+      font-weight: normal;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: #222;
+      border: 1px solid #333;
+      color: white;
+      border-radius: 6px;
+      box-sizing: border-box;
+      outline: none;
+    }
+    input:focus {
+      border-color: red;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: red;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    button:disabled {
+      background: #555;
+    }
+    #msg {
+      color: #ff4d4d;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <div class="logo">ZNN</div>
+  <h3>Admin Login</h3>
+
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+
+  <!-- ✅ FIX: added id -->
+  <button id="login-btn" type="button" onclick="login()">Login</button>
+
+  <p id="msg"></p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAwJMBbZdiq14w0QekL24UrN8ft1Nuntgg",
+  authDomain: "znn-admin.firebaseapp.com",
+  projectId: "znn-admin",
+  storageBucket: "znn-admin.firebasestorage.app",
+  messagingSenderId: "777009661426",
+  appId: "1:777009661426:web:12f0f3059d6e123d60576b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// ✅ auto redirect if already logged in
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    window.location.href = "/admin.html";
+  }
+});
+
+window.login = async function () {
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const password = document.getElementById("password").value.trim();
+  const msg = document.getElementById("msg");
+  const btn = document.getElementById("login-btn");
+
+  if (!email || !password) {
+    msg.innerText = "Enter email & password";
+    return;
+  }
+
+  btn.innerText = "Connecting...";
+  btn.disabled = true;
+  msg.innerText = "";
+
+  try {
+    // ✅ Keep login session active
+    await setPersistence(auth, browserLocalPersistence);
+    await signInWithEmailAndPassword(auth, email, password);
+
+    // ✅ SUCCESS
+    window.location.href = "/admin.html";
+
+  } catch (error) {
+    console.error(error);
+
+    msg.innerText = "Invalid email or password";
+
+    btn.innerText = "Login";
+    btn.disabled = false;
+  }
+};
+</script>
+
+</body>
+</html>

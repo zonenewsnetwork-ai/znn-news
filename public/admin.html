@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZNN Admin — CMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#ffffff;
+      --surface:#f8f9fa;
+      --surface2:#f0f1f3;
+      --border:#e5e7eb;
+      --text:#111827;
+      --muted:#6b7280;
+      --accent:#1a1a2e;
+      --accent2:#16213e;
+      --blue:#3b82f6;
+      --green:#16a34a;
+      --red:#dc2626;
+      --orange:#f59e0b;
+      --purple:#7c3aed;
+      --shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+      --shadow-md:0 4px 20px rgba(0,0,0,.1);
+      --shadow-lg:0 10px 40px rgba(0,0,0,.14);
+      --radius:10px;
+      --sidebar:260px;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:none;min-height:100vh;font-size:14px;}
+
+    /* ===== SIDEBAR ===== */
+    .sidebar{width:var(--sidebar);background:var(--accent);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;box-shadow:4px 0 24px rgba(0,0,0,.15);}
+    .sb-logo{padding:26px 24px 22px;border-bottom:1px solid rgba(255,255,255,.08);}
+    .sb-logo-main{display:flex;align-items:center;gap:10px;}
+    .sb-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#e74c3c,#c0392b);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;letter-spacing:1px;}
+    .sb-logo-text{font-size:20px;font-weight:800;letter-spacing:.5px;color:#fff;}
+    .sb-logo-sub{font-size:10.5px;color:rgba(255,255,255,.4);margin-top:3px;letter-spacing:.5px;}
+    .sb-nav{flex:1;padding:14px 0;overflow-y:auto;}
+    .sb-section{padding:10px 20px 4px;font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.3);text-transform:uppercase;}
+    .nav-item{display:flex;align-items:center;gap:11px;padding:11px 20px;cursor:pointer;border-left:3px solid transparent;transition:all .18s;color:rgba(255,255,255,.6);font-weight:500;font-size:13.5px;user-select:none;border-radius:0 8px 8px 0;margin:1px 8px 1px 0;}
+    .nav-item:hover{background:rgba(255,255,255,.07);color:#fff;}
+    .nav-item.active{background:rgba(255,255,255,.12);border-left-color:#e74c3c;color:#fff;}
+    .nav-item svg{width:17px;height:17px;flex-shrink:0;}
+    .nav-badge{margin-left:auto;background:rgba(255,255,255,.15);border-radius:20px;padding:2px 8px;font-size:10.5px;font-weight:600;}
+    .sb-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:rgba(255,255,255,.3);}
+    .sb-user{display:flex;align-items:center;gap:10px;}
+    .sb-avatar{width:32px;height:32px;background:linear-gradient(135deg,#e74c3c,#c0392b);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;}
+
+    /* ===== MAIN ===== */
+    .main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+    /* ===== TOPBAR ===== */
+    .topbar{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;z-index:100;gap:16px;}
+    .topbar-left{display:flex;align-items:center;gap:14px;flex:1;}
+    .topbar-title{font-size:17px;font-weight:700;color:var(--text);white-space:nowrap;}
+    .topbar-search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:8px 14px;flex:1;max-width:340px;transition:border-color .18s;}
+    .topbar-search:focus-within{border-color:var(--accent);}
+    .topbar-search svg{width:15px;height:15px;color:var(--muted);flex-shrink:0;}
+    .topbar-search input{border:none;background:transparent;outline:none;font-size:13.5px;font-family:inherit;color:var(--text);width:100%;}
+    .topbar-search input::placeholder{color:var(--muted);}
+    .topbar-right{display:flex;align-items:center;gap:12px;}
+    .live-pill{display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:5px 12px;font-size:12px;color:var(--green);font-weight:600;}
+    .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.6s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.8);}}
+    .topbar-avatar{width:34px;height:34px;background:linear-gradient(135deg,#e74c3c,#c0392b);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;cursor:pointer;}
+
+    /* ===== PAGE ===== */
+    .page{display:none;padding:28px;flex:1;animation:fadeIn .2s ease;}
+    .page.active{display:block;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+    .page-header{margin-bottom:26px;}
+    .page-header h1{font-size:22px;font-weight:800;color:var(--text);}
+    .page-header p{font-size:13px;color:var(--muted);margin-top:3px;}
+
+    /* ===== STAT CARDS ===== */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;margin-bottom:28px;}
+    .stat-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s;cursor:default;}
+    .stat-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+    .stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+    .stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+    .si-blue{background:#eff6ff;} .si-green{background:#f0fdf4;} .si-purple{background:#f5f3ff;} .si-orange{background:#fff7ed;}
+    .stat-icon svg{width:20px;height:20px;}
+    .stat-trend{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;}
+    .trend-up{background:#f0fdf4;color:var(--green);}
+    .stat-label{font-size:11.5px;font-weight:600;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+    .stat-value{font-size:34px;font-weight:800;color:var(--text);line-height:1;}
+
+    /* ===== CARDS ===== */
+    .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:22px;}
+    .card-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    .card-title{font-size:15px;font-weight:700;color:var(--text);}
+    .card-body{padding:22px;}
+    .card-actions{display:flex;align-items:center;gap:8px;}
+
+    /* ===== TABLE ===== */
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.7px;color:var(--muted);text-transform:uppercase;background:var(--surface);border-bottom:1px solid var(--border);}
+    tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
+    tbody tr:last-child{border-bottom:none;}
+    tbody tr:hover{background:var(--surface);}
+    tbody td{padding:12px 14px;font-size:13.5px;color:var(--text);vertical-align:middle;}
+    .td-muted{color:var(--muted);font-size:12px;}
+
+    /* ===== BADGES ===== */
+    .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;letter-spacing:.3px;}
+    .b-blue{background:#dbeafe;color:#1d4ed8;} .b-green{background:#dcfce7;color:#15803d;}
+    .b-orange{background:#fef3c7;color:#b45309;} .b-gray{background:#f3f4f6;color:#374151;}
+    .b-purple{background:#ede9fe;color:#6d28d9;} .b-red{background:#fee2e2;color:#dc2626;}
+    .b-pink{background:#fce7f3;color:#be185d;}
+
+    /* ===== BUTTONS ===== */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 20px;border:none;border-radius:8px;font-size:13.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .18s;text-decoration:none;white-space:nowrap;}
+    .btn-primary{background:var(--accent);color:#fff;}
+    .btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,26,46,.25);}
+    .btn-primary:active{transform:translateY(0);}
+    .btn-danger{background:#fef2f2;color:var(--red);border:1px solid #fecaca;padding:6px 12px;font-size:12px;}
+    .btn-danger:hover{background:#fee2e2;}
+    .btn-edit{background:#eff6ff;color:var(--blue);border:1px solid #bfdbfe;padding:6px 12px;font-size:12px;}
+    .btn-edit:hover{background:#dbeafe;}
+    .btn-sm{padding:6px 14px;font-size:12px;}
+    .btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border);padding:7px 16px;}
+    .btn-outline:hover{background:var(--surface);}
+
+    /* ===== FORMS ===== */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .form-group{display:flex;flex-direction:column;gap:5px;}
+    .form-group.full{grid-column:1/-1;}
+    .form-label{font-size:12.5px;font-weight:600;color:var(--text);}
+    .form-input,.form-select,.form-textarea{width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;font-family:inherit;color:var(--text);background:var(--bg);transition:border-color .18s,box-shadow .18s;outline:none;}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,26,46,.07);}
+    .form-textarea{resize:vertical;min-height:80px;}
+    .form-hint{font-size:11px;color:var(--muted);}
+
+    /* ===== IMAGE PREVIEW ===== */
+    .img-preview-wrap{margin-top:8px;border:1.5px dashed var(--border);border-radius:8px;overflow:hidden;display:none;background:var(--surface);}
+    .img-preview-wrap.show{display:block;}
+    .img-preview-wrap img{width:100%;max-height:160px;object-fit:cover;display:block;}
+
+    /* ===== SECTION LAYOUT ===== */
+    .section-grid{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start;}
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .filter-btn{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .18s;color:var(--muted);}
+    .filter-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+    /* ===== THUMB ===== */
+    .news-thumb{width:42px;height:42px;border-radius:6px;object-fit:cover;background:var(--surface2);flex-shrink:0;}
+    .td-news{display:flex;align-items:center;gap:10px;}
+    .td-news-title{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;}
+    .td-news-desc{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;margin-top:2px;}
+
+    /* ===== CHANNEL CARDS ===== */
+    .channel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+    .ch-card{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;background:var(--bg);transition:box-shadow .2s;display:flex;flex-direction:column;gap:8px;}
+    .ch-card:hover{box-shadow:var(--shadow-md);}
+    .ch-name{font-size:14.5px;font-weight:700;}
+    .ch-url{font-size:10.5px;color:var(--muted);word-break:break-all;line-height:1.4;}
+    .ch-actions{display:flex;gap:7px;margin-top:4px;}
+
+    /* ===== ALERTS ===== */
+    .alert{display:flex;align-items:center;gap:9px;padding:11px 15px;border-radius:8px;font-size:13px;font-weight:500;margin-top:14px;animation:fadeIn .2s ease;}
+    .alert-success{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0;}
+    .alert-error{background:#fef2f2;color:var(--red);border:1px solid #fecaca;}
+
+    /* ===== SKELETON ===== */
+    .skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
+    @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+    .sk-row{height:14px;margin-bottom:10px;}
+    .sk-row:last-child{width:65%;}
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state{text-align:center;padding:48px 24px;color:var(--muted);}
+    .empty-state svg{width:38px;height:38px;margin-bottom:10px;opacity:.25;}
+    .empty-state p{font-size:13.5px;}
+
+    /* ===== MODAL ===== */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal{background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:var(--shadow-lg);transform:scale(.96);transition:transform .2s;overflow:hidden;}
+    .modal-overlay.open .modal{transform:scale(1);}
+    .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .modal-title{font-size:16px;font-weight:700;}
+    .modal-close{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;background:var(--surface);border-radius:50%;cursor:pointer;font-size:16px;color:var(--muted);transition:background .15s;}
+    .modal-close:hover{background:var(--surface2);}
+    .modal-body{padding:22px 24px;}
+    .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+
+    /* ===== ACTIVITY ===== */
+    .activity-list{display:flex;flex-direction:column;gap:0;}
+    .act-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border);}
+    .act-item:last-child{border-bottom:none;}
+    .act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .act-dot.blue{background:var(--blue);} .act-dot.green{background:var(--green);} .act-dot.orange{background:var(--orange);}
+    .act-text{flex:1;font-size:13px;}
+    .act-time{font-size:11.5px;color:var(--muted);}
+
+    /* ===== DASHBOARD GRID ===== */
+    .dash-grid{display:grid;grid-template-columns:1fr 320px;gap:22px;align-items:start;}
+
+    /* ===== RESPONSIVE ===== */
+    @media(max-width:1024px){.dash-grid{grid-template-columns:1fr;}.section-grid{grid-template-columns:1fr;}}
+    @media(max-width:768px){.main{margin-left:0;}.sidebar{transform:translateX(-100%);}.stats-grid{grid-template-columns:1fr 1fr;}.form-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAwJMBbZdiq14w0QekL24UrN8ft1Nuntgg",
+    authDomain: "znn-admin.firebaseapp.com",
+    projectId: "znn-admin",
+    storageBucket: "znn-admin.firebasestorage.app",
+    messagingSenderId: "777009661426",
+    appId: "1:777009661426:web:12f0f3059d6e123d60576b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // Auth Guard
+  let isAuthComplete = false;
+  onAuthStateChanged(auth, (user) => {
+    isAuthComplete = true;
+    if (user) {
+      document.body.style.display = 'flex';
+      localStorage.setItem("adminLoggedIn", "true");
+      
+      // Load initial data only AFTER auth is confirmed
+      loadDashboard();
+      loadNews();
+      loadLive();
+    } else {
+      localStorage.removeItem("adminLoggedIn");
+      window.location.href = '/admin-login.html';
+    }
+  });
+
+  // Global fetch wrapper for auth
+  window.authFetch = async function(url, options = {}) {
+    // Wait for the auth listener to complete its first run
+    while (!isAuthComplete) {
+      await new Promise(r => setTimeout(r, 50));
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      window.location.href = '/admin-login.html';
+      return;
+    }
+    
+    const idToken = await user.getIdToken();
+    options.headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${idToken}`
+    };
+
+    const res = await fetch(url, options);
+    if (res.status === 401) {
+      await signOut(auth);
+      window.location.href = '/admin-login.html';
+    }
+    return res;
+  };
+
+  window.logout = async function() {
+    try {
+      await signOut(auth);
+      localStorage.removeItem("adminLoggedIn");
+      window.location.href = '/admin-login.html';
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+</script>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-main">
+      <div class="sb-logo-icon">Z</div>
+      <div>
+        <div class="sb-logo-text">ZNN</div>
+        <div class="sb-logo-sub">News CMS</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="sb-section" style="margin-top:8px">Content</div>
+    <div class="nav-item" id="nav-news" onclick="navigate('news')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2z"/><path d="M17 22V12H7v10"/></svg>
+      News Articles
+      <span class="nav-badge" id="sb-news-count">0</span>
+    </div>
+    <div class="nav-item" id="nav-live" onclick="navigate('live')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49m11.31-2.82a10 10 0 010 14.14m-14.14 0a10 10 0 010-14.14"/></svg>
+      Live TV
+      <span class="nav-badge" id="sb-live-count">0</span>
+    </div>
+    <div class="nav-item" id="nav-ads" onclick="navigate('ads')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Ads Management
+    </div>
+    <div class="sb-section" style="margin-top:8px">System</div>
+    <div class="nav-item" id="nav-seo" onclick="navigate('seo')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+      SEO Manager
+    </div>
+    <div class="nav-item" id="nav-automation" onclick="navigate('automation')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      Automation
+    </div>
+    <div class="nav-item" id="nav-ai" onclick="navigate('ai')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      AI Control
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="navigate('settings')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Settings
+    </div>
+    <div class="nav-item" style="margin-top:20px;color:var(--red)" onclick="logout()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Logout
+    </div>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar">A</div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#fff">Admin</div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,.35)">ZNN CMS</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title" id="topbar-title">Dashboard</span>
+      <div class="topbar-search">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="Search articles…" oninput="handleSearch()"/>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-pill"><div class="pulse"></div>Live · 5s refresh</div>
+      <div class="topbar-avatar" title="Admin">A</div>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>Real-time overview of your ZNN content</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon si-blue"><svg fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2z"/></svg></div>
+          <span class="stat-trend trend-up">Live</span>
+        </div>
+        <div class="stat-label">Total News</div>
+        <div class="stat-value" id="stat-news">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon si-green"><svg fill="none" stroke="#16a34a" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49"/></svg></div>
+          <span class="stat-trend trend-up">Live</span>
+        </div>
+        <div class="stat-label">Live Channels</div>
+        <div class="stat-value" id="stat-live">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon si-blue"><svg fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+          <span class="stat-trend trend-up">Active</span>
+        </div>
+        <div class="stat-label">Active Ads</div>
+        <div class="stat-value" id="stat-ads">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon si-purple"><svg fill="none" stroke="#7c3aed" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+        </div>
+        <div class="stat-label">Last Updated</div>
+        <div class="stat-value" id="stat-time" style="font-size:16px;padding-top:8px">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon si-orange"><svg fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        </div>
+        <div class="stat-label">Status</div>
+        <div class="stat-value" style="font-size:16px;padding-top:8px;color:var(--green)">● Online</div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <!-- Recent news table -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Latest Articles</span>
+          <span class="badge b-gray" id="dash-count">Loading…</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Article</th><th>Category</th><th>Date</th></tr></thead>
+            <tbody id="dash-tbody">
+              <tr><td colspan="3"><div class="sk-row skeleton"></div><div class="sk-row skeleton"></div><div class="sk-row skeleton"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Activity panel -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Activity</span></div>
+        <div class="card-body" style="padding:8px 22px">
+          <div class="activity-list" id="activity-list">
+            <div class="sk-row skeleton" style="margin:12px 0"></div>
+            <div class="sk-row skeleton" style="margin:12px 0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NEWS PAGE ===== -->
+  <div class="page" id="page-news">
+    <div class="page-header">
+      <h1>News Management</h1>
+      <p>Add, edit, and delete news articles</p>
+    </div>
+
+    <div class="section-grid">
+      <!-- Add Form -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-header"><span class="card-title">Add Article</span></div>
+        <div class="card-body">
+          <form id="form-news" onsubmit="submitNews(event)">
+            <div class="form-grid">
+              <div class="form-group full">
+                <label class="form-label" for="news-title">Title *</label>
+                <input id="news-title" class="form-input" type="text" placeholder="Article headline…" required/>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="news-desc">Description</label>
+                <textarea id="news-desc" class="form-textarea" placeholder="Brief summary…"></textarea>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="news-img">Image URL</label>
+                <input id="news-img" class="form-input" type="url" placeholder="https://…" oninput="previewImg('news-img','news-preview')"/>
+                <div class="img-preview-wrap" id="news-preview"><img src="" alt="Preview"/></div>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="news-cat">Category</label>
+                <select id="news-cat" class="form-select">
+                  <option value="General">General</option>
+                  <option value="Politics">Politics</option>
+                  <option value="World">World</option>
+                  <option value="Business">Business</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Science">Science</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:18px">
+              <button class="btn btn-primary" type="submit" id="news-submit-btn">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                Add Article
+              </button>
+            </div>
+            <div id="news-alert"></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- News List -->
+      <div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-header">
+            <span class="card-title">All Articles</span>
+            <div class="card-actions">
+              <span class="badge b-blue" id="news-count">—</span>
+            </div>
+          </div>
+          <div class="card-header" style="border-top:none;border-bottom:1px solid var(--border);padding-top:10px;padding-bottom:10px">
+            <div class="filter-bar" id="news-filter-bar">
+              <button class="filter-btn active" onclick="filterNews('all',this)">All</button>
+              <button class="filter-btn" onclick="filterNews('General',this)">General</button>
+              <button class="filter-btn" onclick="filterNews('Politics',this)">Politics</button>
+              <button class="filter-btn" onclick="filterNews('World',this)">World</button>
+              <button class="filter-btn" onclick="filterNews('Business',this)">Business</button>
+              <button class="filter-btn" onclick="filterNews('Technology',this)">Tech</button>
+              <button class="filter-btn" onclick="filterNews('Sports',this)">Sports</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Article</th><th>Category</th><th>Date</th><th>Actions</th></tr></thead>
+              <tbody id="news-tbody">
+                <tr><td colspan="4"><div class="sk-row skeleton"></div><div class="sk-row skeleton"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LIVE TV PAGE ===== -->
+  <div class="page" id="page-live">
+    <div class="page-header">
+      <h1>Live TV Management</h1>
+      <p>Add and manage live streaming channels</p>
+    </div>
+
+    <div class="section-grid">
+      <!-- Add Form -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-header"><span class="card-title">Add Channel</span></div>
+        <div class="card-body">
+          <form id="form-live" onsubmit="submitLive(event)">
+            <div class="form-grid">
+              <div class="form-group full">
+                <label class="form-label" for="live-name">Channel Name *</label>
+                <input id="live-name" class="form-input" type="text" placeholder="e.g. NDTV 24x7" required/>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="live-url">YouTube Embed URL *</label>
+                <input id="live-url" class="form-input" type="url" placeholder="https://www.youtube.com/embed/…" required/>
+                <span class="form-hint">Use the /embed/ URL format from YouTube</span>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="live-lang">Language</label>
+                <select id="live-lang" class="form-select">
+                  <option value="English">English</option>
+                  <option value="Hindi">Hindi</option>
+                  <option value="Telugu">Telugu</option>
+                  <option value="Tamil">Tamil</option>
+                  <option value="Kannada">Kannada</option>
+                  <option value="Malayalam">Malayalam</option>
+                  <option value="Bengali">Bengali</option>
+                  <option value="Marathi">Marathi</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:18px">
+              <button class="btn btn-primary" type="submit" id="live-submit-btn">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                Add Channel
+              </button>
+            </div>
+            <div id="live-alert"></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Channel List -->
+      <div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-header">
+            <span class="card-title">All Channels</span>
+            <span class="badge b-green" id="live-count">—</span>
+          </div>
+          <div class="card-header" style="border-top:none;border-bottom:1px solid var(--border);padding-top:10px;padding-bottom:10px">
+            <div class="filter-bar" id="live-filter-bar">
+              <button class="filter-btn active" onclick="filterLive('all',this)">All</button>
+              <button class="filter-btn" onclick="filterLive('English',this)">English</button>
+              <button class="filter-btn" onclick="filterLive('Hindi',this)">Hindi</button>
+              <button class="filter-btn" onclick="filterLive('Telugu',this)">Telugu</button>
+              <button class="filter-btn" onclick="filterLive('Tamil',this)">Tamil</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="channel-grid" id="live-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADS PAGE ===== -->
+  <div class="page" id="page-ads">
+    <div class="page-header">
+      <h1>Ads Management</h1>
+      <p>Manage Google Adsense, Analytics, and Manual Ads</p>
+    </div>
+
+    <div class="section-grid">
+      <!-- Add Form -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-header"><span class="card-title">Add New Ad</span></div>
+        <div class="card-body">
+          <form id="form-ads" onsubmit="submitAd(event)">
+            <div class="form-grid">
+              <div class="form-group full">
+                <label class="form-label" for="ad-type">Ad Type *</label>
+                <select id="ad-type" class="form-select" required>
+                  <option value="adsense">Google Adsense</option>
+                  <option value="analytics">Google Analytics</option>
+                  <option value="search-console">Search Console</option>
+                  <option value="manual">Manual Ad (HTML/Img)</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="ad-name">Internal Name *</label>
+                <input id="ad-name" class="form-input" type="text" placeholder="e.g. Sidebar Banner 1" required/>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="ad-code">Ad Script / Meta Code *</label>
+                <textarea id="ad-code" class="form-textarea" placeholder="Paste full <script> or <meta> tag here…" required style="min-height:120px"></textarea>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="ad-placement">Placement *</label>
+                <select id="ad-placement" class="form-select" required>
+                  <option value="header">Header (inside &lt;head&gt;)</option>
+                  <option value="footer">Footer (before &lt;/body&gt;)</option>
+                  <option value="sidebar">Sidebar Section</option>
+                  <option value="between-posts">Between Posts (News Feed)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <select id="ad-status" class="form-select">
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:18px">
+              <button class="btn btn-primary" type="submit" id="ad-submit-btn">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                Add Ad Configuration
+              </button>
+            </div>
+            <div id="ad-alert"></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Ads List -->
+      <div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-header">
+            <span class="card-title">All Ad Configurations</span>
+            <span class="badge b-blue" id="ad-count">0 ads</span>
+          </div>
+          <div class="card-header" style="border-top:none;border-bottom:1px solid var(--border);padding-top:10px;padding-bottom:10px">
+            <div class="filter-bar" id="ad-filter-bar">
+              <button class="filter-btn active" onclick="filterAds('all',this)">All</button>
+              <button class="filter-btn" onclick="filterAds('adsense',this)">Adsense</button>
+              <button class="filter-btn" onclick="filterAds('analytics',this)">Analytics</button>
+              <button class="filter-btn" onclick="filterAds('manual',this)">Manual</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name / Type</th><th>Placement</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="ad-tbody">
+                <tr><td colspan="4"><div class="sk-row skeleton"></div><div class="sk-row skeleton"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SEO PAGE ===== -->
+  <div class="page" id="page-seo">
+    <div class="page-header">
+      <h1>SEO Manager</h1>
+      <p>Configure site-wide SEO, Sitemap, and Robots.txt</p>
+    </div>
+    <div class="card" style="max-width:800px">
+      <div class="card-header"><span class="card-title">General SEO Settings</span></div>
+      <div class="card-body">
+        <form onsubmit="saveSettings(event)">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label class="form-label">Site Title</label>
+              <input type="text" id="seo-title" class="form-input" placeholder="ZNN - News Network"/>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Meta Description</label>
+              <textarea id="seo-desc" class="form-textarea" placeholder="Daily news updates…"></textarea>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Keywords (comma separated)</label>
+              <input type="text" id="seo-keywords" class="form-input" placeholder="news, global, tech"/>
+            </div>
+          </div>
+          <div style="margin-top:20px"><button class="btn btn-primary" type="submit">Save SEO Settings</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== AI CONTROL PAGE ===== -->
+  <div class="page" id="page-ai">
+    <div class="page-header">
+      <h1>AI Content Control</h1>
+      <p>Manage AI-powered rewriting and SEO generation</p>
+    </div>
+    <div class="card" style="max-width:600px">
+      <div class="card-body">
+        <div class="form-group" style="flex-direction:row;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div class="form-label">AI Rewriting</div>
+            <div class="form-hint">Automatically rewrite fetched news to be unique</div>
+          </div>
+          <input type="checkbox" id="ai-enabled" checked onchange="saveSettings()"/>
+        </div>
+        <div class="form-group" style="padding:15px 0">
+          <label class="form-label">Target Content Length</label>
+          <select id="ai-length" class="form-select" onchange="saveSettings()" style="margin-top:8px">
+            <option value="short">Short (150 words)</option>
+            <option value="medium" selected>Medium (300 words)</option>
+            <option value="long">Long (600 words)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== AUTOMATION PAGE ===== -->
+  <div class="page" id="page-automation">
+    <div class="page-header">
+      <h1>Automation</h1>
+      <p>Control news fetching and source rotation</p>
+    </div>
+    <div class="card" style="max-width:600px">
+      <div class="card-body">
+        <div class="form-group" style="flex-direction:row;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div class="form-label">Auto News Fetching</div>
+            <div class="form-hint">Enable/Disable the 15-minute cron job</div>
+          </div>
+          <input type="checkbox" id="auto-fetch" checked onchange="saveSettings()"/>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:10px">
+          <button class="btn btn-outline" onclick="triggerFetch()">Fetch News Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS PAGE ===== -->
+  <div class="page" id="page-settings">
+    <div class="page-header">
+      <h1>System Settings</h1>
+      <p>Configure API keys and core preferences</p>
+    </div>
+    <div class="card" style="max-width:600px">
+      <div class="card-body">
+        <form onsubmit="saveSettings(event)">
+          <div class="form-group" style="margin-bottom:15px">
+            <label class="form-label">GNews API Key</label>
+            <input type="password" id="key-gnews" class="form-input" placeholder="Paste key…"/>
+          </div>
+          <div class="form-group" style="margin-bottom:15px">
+            <label class="form-label">OpenAI API Key</label>
+            <input type="password" id="key-openai" class="form-input" placeholder="Paste key…"/>
+          </div>
+          <button class="btn btn-primary" type="submit">Update Keys</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ===== EDIT NEWS MODAL ===== -->
+<div class="modal-overlay" id="edit-modal" onclick="closeEditModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Article</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <input type="hidden" id="edit-id"/>
+        <div class="form-group full">
+          <label class="form-label">Title *</label>
+          <input id="edit-title" class="form-input" type="text" placeholder="Headline…" required/>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Description</label>
+          <textarea id="edit-desc" class="form-textarea" placeholder="Summary…"></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Image URL</label>
+          <input id="edit-img" class="form-input" type="url" placeholder="https://…" oninput="previewImg('edit-img','edit-preview')"/>
+          <div class="img-preview-wrap" id="edit-preview"><img src="" alt="Preview"/></div>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Category</label>
+          <select id="edit-cat" class="form-select">
+            <option value="General">General</option>
+            <option value="Politics">Politics</option>
+            <option value="World">World</option>
+            <option value="Business">Business</option>
+            <option value="Technology">Technology</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Sports">Sports</option>
+            <option value="Science">Science</option>
+          </select>
+        </div>
+      </div>
+      <div id="edit-alert"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="edit-save-btn" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* =========================================================
+     DATA STORE
+  ========================================================= */
+  let allNews = [];
+  let allLive = [];
+  let newsFilter = 'all';
+  let liveFilter = 'all';
+  let searchTerm = '';
+
+  /* =========================================================
+     NAVIGATION
+  ========================================================= */
+  const pageNames = { 
+    dashboard:'Dashboard', 
+    news:'News Management', 
+    live:'Live TV Management', 
+    ads:'Ads Management',
+    seo:'SEO Manager',
+    automation:'Automation',
+    ai:'AI Control',
+    settings:'System Settings'
+  };
+
+  // logout() is defined in the module <script> above as window.logout
+  // Do NOT redefine it here — it would skip Firebase signOut and cause redirect loops
+
+  async function loadSettings() {
+    try {
+      const r = await authFetch('/api/settings');
+      const d = await r.json();
+      if (d.success && d.settings) {
+        const s = d.settings;
+        document.getElementById('seo-title').value = s.seoDefaults?.title || '';
+        document.getElementById('seo-desc').value = s.seoDefaults?.description || '';
+        document.getElementById('seo-keywords').value = s.seoDefaults?.keywords || '';
+        document.getElementById('ai-enabled').checked = s.aiRewriteEnabled;
+        document.getElementById('ai-length').value = s.aiRewriteLength;
+        document.getElementById('auto-fetch').checked = s.autoFetchEnabled;
+        document.getElementById('key-gnews').value = s.apiKeys?.gnews || '';
+        document.getElementById('key-openai').value = s.apiKeys?.openai || '';
+      }
+    } catch(e) { console.error('Load settings error:', e); }
+  }
+
+  async function saveSettings(e) {
+    if (e) e.preventDefault();
+    const settings = {
+      seoDefaults: {
+        title: document.getElementById('seo-title').value,
+        description: document.getElementById('seo-desc').value,
+        keywords: document.getElementById('seo-keywords').value
+      },
+      aiRewriteEnabled: document.getElementById('ai-enabled').checked,
+      aiRewriteLength: document.getElementById('ai-length').value,
+      autoFetchEnabled: document.getElementById('auto-fetch').checked,
+      apiKeys: {
+        gnews: document.getElementById('key-gnews').value,
+        openai: document.getElementById('key-openai').value
+      }
+    };
+
+    try {
+      const r = await authFetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+      const d = await r.json();
+      if (d.success) alert('Settings saved successfully!');
+    } catch(e) { alert('Failed to save settings'); }
+  }
+
+  async function triggerFetch() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Fetching...';
+    try {
+      const r = await authFetch('/api/admin/fetch-now', { method: 'POST' });
+      const d = await r.json();
+      alert(d.message || 'Fetch triggered!');
+    } catch(e) { alert('Fetch failed'); }
+    btn.disabled = false;
+    btn.textContent = 'Fetch News Now';
+  }
+
+  function navigate(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.getElementById('nav-' + page).classList.add('active');
+    document.getElementById('topbar-title').textContent = pageNames[page] || page;
+
+    const si = document.getElementById('search-input');
+    si.style.display = (page === 'news') ? '' : 'none'; // search only on news page
+
+    if (page === 'dashboard') loadDashboard();
+    if (page === 'news') loadNews();
+    if (page === 'live') loadLive();
+    if (page === 'ads') loadAds();
+    if (['seo', 'ai', 'automation', 'settings'].includes(page)) loadSettings();
+  }
+
+  /* =========================================================
+     HELPERS
+  ========================================================= */
+  function esc(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  }
+
+  const catColor = { general:'b-gray',politics:'b-orange',world:'b-blue',business:'b-green',technology:'b-blue',entertainment:'b-purple',sports:'b-green',science:'b-blue',default:'b-gray' };
+  function catBadge(cat) {
+    const k = (cat||'general').toLowerCase();
+    return `<span class="badge ${catColor[k]||'b-gray'}">${esc(cat||'General')}</span>`;
+  }
+
+  const langColor = { english:'b-blue',hindi:'b-orange',telugu:'b-green',tamil:'b-purple',kannada:'b-green',malayalam:'b-blue',bengali:'b-pink',marathi:'b-gray' };
+  function langBadge(lang) {
+    const k=(lang||'english').toLowerCase();
+    return `<span class="badge ${langColor[k]||'b-gray'}">${esc(lang||'English')}</span>`;
+  }
+
+  function showAlert(id, type, msg) {
+    const el = document.getElementById(id);
+    el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+    setTimeout(()=>{ el.innerHTML=''; }, 4000);
+  }
+
+  function emptyRow(msg, cols=4) {
+    return `<tr><td colspan="${cols}"><div class="empty-state">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <p>${msg}</p>
+    </div></td></tr>`;
+  }
+
+  function previewImg(inputId, wrapId) {
+    const url = document.getElementById(inputId).value.trim();
+    const wrap = document.getElementById(wrapId);
+    const img = wrap.querySelector('img');
+    if (url) { img.src = url; wrap.classList.add('show'); img.onerror = () => wrap.classList.remove('show'); }
+    else { wrap.classList.remove('show'); }
+  }
+
+  /* =========================================================
+     SEARCH
+  ========================================================= */
+  function handleSearch() {
+    searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+    renderNews();
+  }
+
+  /* =========================================================
+     DASHBOARD
+  ========================================================= */
+  async function loadDashboard() {
+    try {
+      const r = await authFetch('/api/admin/dashboard');
+      const d = await r.json();
+
+      document.getElementById('stat-news').textContent = d.totalNews ?? 0;
+      document.getElementById('stat-live').textContent = d.totalLive ?? 0;
+      document.getElementById('stat-ads').textContent = d.totalAds ?? 0;
+      document.getElementById('stat-time').textContent = new Date().toLocaleTimeString('en-IN');
+      document.getElementById('sb-news-count').textContent = d.totalNews ?? 0;
+      document.getElementById('sb-live-count').textContent = d.totalLive ?? 0;
+      document.getElementById('dash-count').textContent = (d.recentNews?.length || 0) + ' articles';
+
+      // Render recent news
+      const tbody = document.getElementById('dash-tbody');
+      const rows = (d.recentNews || []).slice(0, 5);
+      if (!rows.length) { tbody.innerHTML = emptyRow('No articles yet.',3); return; }
+      tbody.innerHTML = rows.map(n => `
+        <tr>
+          <td>
+            <div class="td-news">
+              ${(n.imageUrl || n.image) ? `<img class="news-thumb" src="${esc(n.imageUrl || n.image)}" onerror="this.style.display='none'" alt=""/>` : ''}
+              <div>
+                <div class="td-news-title">${esc(n.title)}</div>
+                <div class="td-news-desc">${esc(n.description||'')}</div>
+              </div>
+            </div>
+          </td>
+          <td>${catBadge(n.category)}</td>
+          <td class="td-muted">${fmtDate(n.createdAt)}</td>
+        </tr>`).join('');
+
+      // Activity
+      const acts = document.getElementById('activity-list');
+      acts.innerHTML = rows.slice(0,5).map((n,i) => `
+        <div class="act-item">
+          <div class="act-dot ${['blue','green','orange','blue','green'][i]}"></div>
+          <div class="act-text">${esc(n.title.length>48 ? n.title.slice(0,48)+'…' : n.title)}</div>
+          <div class="act-time">${fmtDate(n.createdAt)}</div>
+        </div>`).join('');
+    } catch(e) {
+      document.getElementById('stat-news').textContent = '!';
+      console.error('Dashboard error:', e);
+    }
+  }
+
+  /* =========================================================
+     NEWS — LOAD & RENDER
+  ========================================================= */
+  async function loadNews() {
+    try {
+      const r = await authFetch('/api/news/all');
+      const data = await r.json();
+      allNews = data.articles || [];
+      renderNews();
+    } catch(e) {
+      document.getElementById('news-tbody').innerHTML = emptyRow('Failed to load news. Check server.');
+    }
+  }
+
+  function filterNews(cat, btn) {
+    newsFilter = cat;
+    document.querySelectorAll('#news-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderNews();
+  }
+
+  async function renderNews() {
+    const tbody = document.getElementById('news-tbody');
+    const res = await authFetch('/api/news/all');
+    const data = await res.json();
+    const articles = data.articles || [];
+    const count = articles.length;
+    document.getElementById('news-count').textContent = count + ' articles';
+
+    if (articles.length === 0) { tbody.innerHTML = emptyRow('No articles yet.'); return; }
+
+    tbody.innerHTML = articles.map(n => `
+      <tr>
+        <td>
+          <div class="td-news">
+            ${(n.imageUrl || n.image) ? `<img class="news-thumb" src="${esc(n.imageUrl || n.image)}" onerror="this.style.display='none'" alt="" />` : ''}
+            <div class="td-news-info">
+              <div class="td-news-title">${esc(n.title)}</div>
+              <div class="td-news-desc">${esc(n.description || '')}</div>
+            </div>
+          </div>
+        </td>
+        <td>${catBadge(n.category)}</td>
+        <td class="td-muted">${fmtDate(n.createdAt)}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="deleteNews('${n._id}', this)">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function submitNews(e) {
+    e.preventDefault();
+    const btn = document.getElementById('news-submit-btn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    const body = {
+      title: document.getElementById('news-title').value.trim(),
+      description: document.getElementById('news-desc').value.trim(),
+      imageUrl: document.getElementById('news-img').value.trim(),
+      category: document.getElementById('news-cat').value
+    };
+    try {
+      const res = await authFetch('/api/news/add', {
+        method: 'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error||'Failed');
+      showAlert('news-alert','success','✔ Article added successfully!');
+      document.getElementById('form-news').reset();
+      document.getElementById('news-preview').classList.remove('show');
+      await loadNews();
+    } catch(err) {
+      showAlert('news-alert','error','✖ '+err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add Article';
+    }
+  }
+
+  async function deleteNews(id, btn) {
+    if (!confirm('Delete this article? This cannot be undone.')) return;
+    btn.disabled = true; btn.textContent = '…';
+    try {
+      await authFetch(`/api/news/${id}`, { method:'DELETE' });
+      await loadNews();
+    } catch(e) { btn.disabled=false; btn.textContent='Delete'; }
+  }
+
+  /* =========================================================
+     EDIT MODAL
+  ========================================================= */
+  function openEdit(n) {
+    document.getElementById('edit-id').value = n.id || n._id;
+    document.getElementById('edit-title').value = n.title || '';
+    document.getElementById('edit-desc').value = n.description || '';
+    document.getElementById('edit-img').value = n.imageUrl || n.image || '';
+    document.getElementById('edit-cat').value = n.category || 'General';
+    previewImg('edit-img','edit-preview');
+    document.getElementById('edit-alert').innerHTML = '';
+    document.getElementById('edit-modal').classList.add('open');
+  }
+
+  function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
+  function closeEditModal(e) { if (e.target === document.getElementById('edit-modal')) closeModal(); }
+
+  async function saveEdit() {
+    const btn = document.getElementById('edit-save-btn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    const id = document.getElementById('edit-id').value;
+    const body = {
+      title: document.getElementById('edit-title').value.trim(),
+      description: document.getElementById('edit-desc').value.trim(),
+      imageUrl: document.getElementById('edit-img').value.trim(),
+      category: document.getElementById('edit-cat').value
+    };
+    try {
+      const r = await authFetch(`/api/news/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error||'Failed');
+      closeModal();
+      await loadNews();
+    } catch(err) {
+      showAlert('edit-alert','error','✖ '+err.message);
+    } finally {
+      btn.disabled=false; btn.textContent='Save Changes';
+    }
+  }
+
+  /* =========================================================
+     LIVE TV — LOAD & RENDER
+  ========================================================= */
+  async function loadLive() {
+    document.getElementById('live-grid').innerHTML = '<div class="sk-row skeleton" style="height:80px;border-radius:10px"></div>';
+    try {
+      const r = await authFetch('/api/live');
+      allLive = await r.json();
+      renderLive();
+    } catch(e) {
+      document.getElementById('live-grid').innerHTML = '<p style="color:var(--muted)">Failed to load channels.</p>';
+    }
+  }
+
+  function filterLive(lang, btn) {
+    liveFilter = lang;
+    document.querySelectorAll('#live-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderLive();
+  }
+
+  function renderLive() {
+    const grid = document.getElementById('live-grid');
+    let data = allLive;
+    if (liveFilter !== 'all') data = data.filter(c => (c.language||'English').toLowerCase() === liveFilter.toLowerCase());
+
+    document.getElementById('live-count').textContent = allLive.length + ' channels';
+    document.getElementById('sb-live-count').textContent = allLive.length;
+
+    if (!data.length) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49m11.31-2.82a10 10 0 010 14.14m-14.14 0a10 10 0 010-14.14"/></svg><p>No channels match your filter.</p></div>';
+      return;
+    }
+
+    grid.innerHTML = data.map(ch => `
+      <div class="ch-card">
+        ${ch.url ? `<div style="border-radius:8px;overflow:hidden;margin-bottom:8px;background:#000">
+          <iframe src="${esc(ch.url)}" width="100%" height="160" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="display:block"></iframe>
+        </div>` : ''}
+        <div class="ch-name">${esc(ch.name)}</div>
+        <div>${langBadge(ch.language)}</div>
+        <div class="ch-url">${esc(ch.url||'')}</div>
+        <div class="ch-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteLive('${esc(String(ch._id))}',this)">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Alias used by DOMContentLoaded listener
+  async function loadLiveChannels() { return loadLive(); }
+
+  async function submitLive(e) {
+    e.preventDefault();
+    const btn = document.getElementById('live-submit-btn');
+    btn.disabled=true; btn.textContent='Saving…';
+    const body = {
+      name: document.getElementById('live-name').value.trim(),
+      url: document.getElementById('live-url').value.trim(),
+      language: document.getElementById('live-lang').value
+    };
+    try {
+      const r = await authFetch('/api/live/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error||'Failed');
+      showAlert('live-alert','success','✔ Channel added successfully!');
+      document.getElementById('form-live').reset();
+      await loadLive();
+    } catch(err) {
+      showAlert('live-alert','error','✖ '+err.message);
+    } finally {
+      btn.disabled=false;
+      btn.innerHTML='<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add Channel';
+    }
+  }
+
+  async function deleteLive(id, btn) {
+    if (!confirm('Delete this channel?')) return;
+    btn.disabled=true; btn.textContent='…';
+    try {
+      await authFetch(`/api/live/${id}`, { method:'DELETE' });
+      await loadLive();
+    } catch(e) { btn.disabled=false; btn.textContent='Delete'; }
+  }
+
+  /* =========================================================
+     ADS — LOAD & RENDER
+  ========================================================= */
+  let allAds = [];
+  let adFilter = 'all';
+
+  async function loadAds() {
+    try {
+      const r = await authFetch('/api/ads');
+      const data = await r.json();
+      allAds = data.ads || [];
+      renderAds();
+    } catch(e) {
+      document.getElementById('ad-tbody').innerHTML = emptyRow('Failed to load ads.');
+    }
+  }
+
+  function filterAds(type, btn) {
+    adFilter = type;
+    document.querySelectorAll('#ad-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderAds();
+  }
+
+  function renderAds() {
+    const tbody = document.getElementById('ad-tbody');
+    let data = allAds;
+    if (adFilter !== 'all') data = data.filter(a => (a.type||'').toLowerCase() === adFilter.toLowerCase());
+
+    document.getElementById('ad-count').textContent = allAds.length + ' ads';
+
+    if (!data.length) { tbody.innerHTML = emptyRow('No ads found.'); return; }
+
+    tbody.innerHTML = data.map(a => `
+      <tr>
+        <td>
+          <div style="font-weight:700">${esc(a.name)}</div>
+          <div style="font-size:11px;color:var(--muted)">${esc(a.type.toUpperCase())}</div>
+        </td>
+        <td><span class="badge b-blue">${esc(a.placement)}</span></td>
+        <td>
+          <span class="badge ${a.status ? 'b-green' : 'b-red'}">${a.status ? 'Active' : 'Inactive'}</span>
+        </td>
+        <td>
+            <div style="display:flex;gap:5px">
+               <button class="btn btn-edit btn-sm" onclick="toggleAd('${a.id}', ${a.status})">${a.status ? 'Disable' : 'Enable'}</button>
+               <button class="delete-btn btn btn-danger btn-sm" data-id="${a.id}">Delete</button>
+            </div>
+        </td>
+      </tr>`).join('');
+      
+    // STEP 1: FIX BINDING
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        deleteAd(id);
+      });
+    });
+  }
+
+  async function submitAd(e) {
+    e.preventDefault();
+    const btn = document.getElementById('ad-submit-btn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    const body = {
+      type: document.getElementById('ad-type').value,
+      name: document.getElementById('ad-name').value.trim(),
+      code: document.getElementById('ad-code').value.trim(),
+      placement: document.getElementById('ad-placement').value,
+      status: document.getElementById('ad-status').value === 'true'
+    };
+    try {
+      const res = await authFetch('/api/ads', {
+        method: 'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error||'Failed');
+      showAlert('ad-alert','success','✔ Ad added successfully!');
+      document.getElementById('form-ads').reset();
+      await loadAds();
+    } catch(err) {
+      showAlert('ad-alert','error','✖ '+err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add Ad Configuration';
+    }
+  }
+
+  async function toggleAd(id, currentStatus) {
+    try {
+      await authFetch(`/api/ads/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ status: !currentStatus })
+      });
+      await loadAds();
+    } catch(e) { console.error('Toggle Ad Error:', e); }
+  }
+
+  // STEP 2: FIX DELETE FUNCTION
+  async function deleteAd(id) {
+    if (!confirm('Delete this ad?')) return;
+    try {
+      // STEP 5: DEBUG CHECK (Check if network sends DELETE correctly)
+      const res = await fetch(`/api/ads/${id}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      if (data.success) {
+        location.reload();
+      }
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  }
+
+  /* =========================================================
+     INIT + AUTO REFRESH
+  ========================================================= */
+  // Hide search on load (dashboard active)
+  document.getElementById('search-input').style.display = 'none';
+
+  // Initial loads (Moved inside onAuthStateChanged)
+  // loadDashboard();
+  // loadNews();
+  // loadLive();
+
+  // Realtime polling every 5 seconds
+  setInterval(() => {
+    if (document.hidden) return;
+    const active = document.querySelector('.page.active');
+    if (!active) return;
+    const id = active.id;
+    if (id === 'page-dashboard') loadDashboard();
+    else if (id === 'page-news') loadNews();
+    else if (id === 'page-live') loadLive();
+    else if (id === 'page-ads') loadAds();
+  }, 3000);
+</script>
+</body>
+</html>
