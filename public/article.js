@@ -52,42 +52,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const articleId = params.get("id");
     const articleSlug = params.get("s");
 
-    if (articleId && supabaseClient) {
+    if (articleId) {
       try {
         console.log("📰 Loading article by ID:", articleId);
-        const { data, error } = await supabaseClient
-          .from("news")
-          .select("*")
-          .eq("id", articleId)
-          .single();
-
-        if (error) {
-          console.error("❌ Article fetch error:", error.message);
-        } else if (data) {
-          art = data;
-          console.log("✅ Article loaded from Supabase:", art.title);
+        const res = await fetch(`/api/news?id=${articleId}`);
+        if (res.ok) {
+          art = await res.json();
+          console.log("✅ Article loaded from API:", art.title);
         }
-      } catch (e) {
-        console.error("❌ Article fetch exception:", e);
-      }
+      } catch (e) { console.error("❌ Article API fetch exception:", e); }
     }
 
-    // Priority 2: Load by slug
-    if (!art && articleSlug && supabaseClient) {
+    if (!art && articleSlug) {
       try {
-        const { data, error } = await supabaseClient
-          .from("news")
-          .select("*")
-          .eq("slug", articleSlug)
-          .single();
-
-        if (!error && data) {
-          art = data;
-          console.log("✅ Article loaded by slug:", art.title);
+        const res = await fetch(`/api/news?slug=${articleSlug}`);
+        if (res.ok) {
+          art = await res.json();
+          console.log("✅ Article loaded by slug from API:", art.title);
         }
-      } catch (e) {
-        console.error("Article slug fetch:", e);
-      }
+      } catch (e) { console.error("Article slug API fetch:", e); }
     }
 
     // Priority 3: Fallback to localStorage
@@ -151,68 +134,41 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ---------- SIDEBAR (Direct Supabase) ---------- */
+  /* ---------- SIDEBAR (API) ---------- */
   async function loadSidebar() {
-    if (!supabaseClient) {
-      console.warn("⚠️ article.js sidebar: Supabase client not available.");
-      return;
-    }
-
-    // Trending — sorted by views
     try {
-      const { data, error } = await supabaseClient
-        .from("news")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      if (!error && data && data.length > 0 && trendM) {
-        trendM.innerHTML = data.map(a =>
-          `<li class="t-item" onclick='openArticle(${safeJSON(a)})'><p class="t-item__title">${esc(a.title)}</p></li>`
-        ).join("");
+      const res = await fetch("/api/news");
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          if (trendM) trendM.innerHTML = data.slice(0, 5).map(a =>
+            `<li class="t-item" onclick='openArticle(${safeJSON(a)})'><p class="t-item__title">${esc(a.title)}</p></li>`
+          ).join("");
+          if (mreadM) mreadM.innerHTML = data.slice(5, 10).map(a =>
+            `<li class="t-item" onclick='openArticle(${safeJSON(a)})'><p class="t-item__title">${esc(a.title)}</p></li>`
+          ).join("");
+        }
       }
-    } catch (e) { console.error("Trending:", e); }
-
-    // Most Read — sorted by created_at (recent)
-    try {
-      const { data, error } = await supabaseClient
-        .from("news")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      if (!error && data && data.length > 0 && mreadM) {
-        mreadM.innerHTML = data.map(a =>
-          `<li class="t-item" onclick='openArticle(${safeJSON(a)})'><p class="t-item__title">${esc(a.title)}</p></li>`
-        ).join("");
-      }
-    } catch (e) { console.error("Most Read:", e); }
+    } catch (e) { console.error("Sidebar API Load:", e); }
   }
 
-  /* ---------- RELATED ---------- */
+  /* ---------- RELATED (API) ---------- */
   async function loadRelated() {
-    if (!supabaseClient || !related) return;
-
+    if (!related) return;
     try {
-      const { data, error } = await supabaseClient
-        .from("news")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(6);
-
-      if (error) throw error;
-
-      let arr = data || [];
-
-      if (related && arr.length > 0) {
-        related.innerHTML = arr.slice(2, 6).map(a =>
-          `<article class="card" onclick='openArticle(${safeJSON(a)})'>
-            <div class="card__media"><img class="card__img" src="${a.image_url || a.image || 'https://images.unsplash.com/photo-1504711434969-e33886168d5c?w=600'}" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504711434969-e33886168d5c?w=600'"></div>
-            <div class="card__body"><div class="meta"><span class="meta__cat">${esc(a.category)}</span></div><h3 class="card__title">${esc(a.title)}</h3></div>
-          </article>`
-        ).join("");
+      const res = await fetch("/api/news");
+      if (res.ok) {
+        let arr = await res.json();
+        if (arr.length > 0) {
+          related.innerHTML = arr.slice(2, 6).map(a =>
+            `<article class="card" onclick='openArticle(${safeJSON(a)})'>
+              <div class="card__media"><img class="card__img" src="${a.image_url || a.image || 'https://images.unsplash.com/photo-1504711434969-e33886168d5c?w=600'}" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504711434969-e33886168d5c?w=600'"></div>
+              <div class="card__body"><div class="meta"><span class="meta__cat">${esc(a.category)}</span></div><h3 class="card__title">${esc(a.title)}</h3></div>
+            </article>`
+          ).join("");
+        }
       }
-    } catch (e) { console.error("Related:", e); }
+    } catch (e) { console.error("Related API Load:", e); }
   }
 
   /* ---------- UTILS ---------- */

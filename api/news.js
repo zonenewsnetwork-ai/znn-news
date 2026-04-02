@@ -16,6 +16,8 @@ export default async function handler(req, res) {
 
     if (id) {
       query = query.eq('id', id).single();
+    } else if (req.query.slug) {
+      query = query.eq('slug', req.query.slug).single();
     } else if (category && category !== 'all') {
       query = query.eq('category', category);
     } else {

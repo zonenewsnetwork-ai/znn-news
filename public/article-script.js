@@ -1,28 +1,15 @@
 /**
- * ZNN – article-script.js | Article Page Logic (Supabase Migration)
- * Standardized to use window.supabaseClient and 'created_at' schema.
+ * ZNN – article-script.js | Article Page Logic (Vercel API Migration)
  */
 document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     const slug = params.get("s");
-    
-    const sb = window.supabaseClient;
-    if (!sb) {
-        console.error("❌ article-script.js: window.supabaseClient not available.");
-        return;
-    }
 
     /* ---------- LOAD ARTICLE ---------- */
     async function loadArticle() {
         try {
-            let query = sb.from('news').select('*');
-            
-            if (id) {
-                query = query.eq('id', id);
-            } else if (slug) {
-                query = query.eq('slug', slug);
-            } else {
+            if (!id && !slug) {
                 // If no ID or slug, localStorage or homepage
                 const raw = localStorage.getItem("znn_article");
                 if (raw) { renderArticle(JSON.parse(raw)); return; }
@@ -30,9 +17,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            const { data, error } = await query.single();
-            if (error) throw error;
-
+            const url = id ? `/api/news?id=${id}` : `/api/news?slug=${slug}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("API failure");
+            
+            const data = await res.json();
             if (data) {
                 renderArticle(data);
                 loadRelated(data.category, data.id);
@@ -68,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <img src="${a.image_url || a.imageUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168d5c?w=600'}" alt="${a.title}" style="width:100%;border-radius:12px;margin-bottom:32px" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504711434969-e33886168d5c?w=600'">
             
             <div class="article-body">
-                ${a.content || a.fullContent || `<p>${a.description}</p>`}
+                ${a.content || a.fullContent || a.full_content || `<p>${a.description}</p>`}
             </div>
 
             <div style="margin-top:40px;padding-top:20px;border-top:1px solid #eee;font-size:14px">
@@ -80,14 +69,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function loadRelated(cat, excludeId) {
         try {
-            const { data, error } = await sb
-                .from('news')
-                .select('*')
-                .eq('category', cat)
-                .neq('id', excludeId)
-                .limit(6);
+            const res = await fetch("/api/news");
+            if (!res.ok) throw new Error("API failure");
             
-            if (error) throw error;
+            let data = await res.json();
+            if (cat) data = data.filter(ar => ar.category === cat);
+            if (excludeId) data = data.filter(ar => ar.id !== excludeId);
+            data = data.slice(0, 6);
 
             const mount = document.getElementById("relatedMount");
             if (mount && data.length > 0) {

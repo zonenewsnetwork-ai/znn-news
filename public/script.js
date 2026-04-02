@@ -176,9 +176,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (mainMount) mainMount.innerHTML = mainHTML;
 
-    // Load Most Read (by views — reuse trending data or first articles)
+    // Load Latest News as Most Read
     if (mreadM) {
-      const mostRead = [...articles].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
+      const mostRead = [...articles].slice(0, 5);
       mreadM.innerHTML = mostRead.map(tItemHTML).join("");
     }
   }
@@ -237,7 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <span>${esc(a.source || "ZNN")}</span>
           <span>·</span>
           <span>${timeAgo(a.created_at)}</span>
-          ${a.views ? `<span>· ${formatViews(a.views)} views</span>` : ''}
         </div>
       </div>
     </div>`;
@@ -253,18 +252,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!response.ok) throw new Error("API failed");
 
       if (data && data.length > 0) {
-        // Sort by views in JS as a temporary measure
-        const trending = [...data].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 10);
+        // Use just the first 10 for trending
+        const trending = [...data].slice(0, 10);
         trendM.innerHTML = trending.map(tItemHTML).join("");
       }
     } catch (e) { console.error("API Trending Load:", e); }
   }
 
   function tItemHTML(a) {
-    const viewCount = a.views ? ` · ${formatViews(a.views)} views` : '';
     return `<li class="t-item" onclick='openArticle(${safeJSON(a)})'>
       <p class="t-item__title">${esc(a.title)}</p>
-      <span class="t-item__views">${viewCount}</span>
     </li>`;
   }
 
@@ -352,17 +349,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------- UTILS ---------- */
   window.openArticle = function (a) {
-    // Track view directly in Supabase
-    if (a.id) {
-      window.supabaseClient.rpc('increment_views', { row_id: a.id }).then(({ error }) => {
-        if (error) {
-          // Fallback to manual increment if RPC is not available
-          window.supabaseClient.from('news').select('views').eq('id', a.id).single().then(({ data }) => {
-            if (data) window.supabaseClient.from('news').update({ views: (data.views || 0) + 1 }).eq('id', a.id).catch(console.error);
-          });
-        }
-      }).catch(console.error);
-    }
     // Navigate to full article page by ID
     if (a.id) {
       window.location.href = `/article.html?id=${a.id}`;

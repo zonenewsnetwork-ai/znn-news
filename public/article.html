@@ -121,7 +121,7 @@
     }
     .related-card__title {
       font-size: 15px; font-weight: 700; line-height: 1.35;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
 
     @media (max-width: 768px) {
@@ -245,20 +245,13 @@
       const slug = params.get("s");
       let article = null;
 
-      // 1. Try fetching by ID
-      if (id && window.supabaseClient) {
+      // 1. Try fetching by ID or slug via API
+      if (id || slug) {
         try {
-          const { data, error } = await window.supabaseClient.from('news').select('*').eq('id', id).single();
-          if (!error) article = data;
-        } catch(e) { console.error("Supabase by ID:", e); }
-      }
-
-      // 2. Try fetching by slug
-      if (!article && slug && window.supabaseClient) {
-        try {
-          const { data, error } = await window.supabaseClient.from('news').select('*').eq('slug', slug).single();
-          if (!error) article = data;
-        } catch(e) { console.error("Supabase by slug:", e); }
+          const url = id ? `/api/news?id=${id}` : `/api/news?slug=${slug}`;
+          const res = await fetch(url);
+          if (res.ok) article = await res.json();
+        } catch(e) { console.error("API fetch article error:", e); }
       }
 
       // 3. Fallback to localStorage
@@ -280,19 +273,6 @@
 
       // Render article
       renderArticle(article);
-
-      // Track view
-      if (article.id && window.supabaseClient) {
-        window.supabaseClient.rpc('increment_views', { row_id: article.id }).then(({ error }) => {
-          if (error) {
-            window.supabaseClient.from('news').select('views').eq('id', article.id).single().then(({ data }) => {
-              if (data) window.supabaseClient.from('news').update({ views: (data.views || 0) + 1 }).eq('id', article.id).catch(console.error);
-            });
-          }
-        }).catch(console.error);
-      }
-
-      // Load related
       loadRelated(article.category, article.id);
     }
 
@@ -341,10 +321,6 @@
         sourceEl.innerHTML = `<p>Source: <strong>${esc(a.source || 'ZNN')}</strong></p>`;
       }
 
-      // Views
-      const viewsEl = document.getElementById("artViews");
-      viewsEl.innerHTML = `<i class="fas fa-eye"></i> ${formatViews(a.views || 0)} views`;
-
       // SEO
       document.title = `${a.title} | ZNN`;
       setMeta("metaDesc", a.description);
@@ -358,37 +334,34 @@
     /* ---------- RELATED ---------- */
     async function loadRelated(category, excludeId) {
       try {
-        if (!window.supabaseClient) return;
-        let query = window.supabaseClient.from('news').select('*');
-        if (category) query = query.ilike('category', category);
+        const res = await fetch("/api/news");
+        if (res.ok) {
+          let arr = await res.json();
+          // Exclude current article
+          if (excludeId) arr = arr.filter(ar => ar.id !== excludeId);
+          if (category) arr = arr.filter(ar => ar.category === category);
+          arr = arr.slice(0, 4);
 
-        const { data, error } = await query.limit(10);
-        let arr = Array.isArray(data) ? data : [];
-        
-        // Exclude current article
-        if (excludeId) arr = arr.filter(a => a.id !== excludeId);
-        arr = arr.slice(0, 4);
-
-        if (arr.length > 0) {
-          document.getElementById("relatedSection").style.display = "block";
-          document.getElementById("relatedGrid").innerHTML = arr.map(a => `
-            <div class="related-card" onclick="openArticle(${safeJSON(a)})">
-              <img src="${a.image_url || FALLBACK_IMG}" alt="${esc(a.title)}" 
-                   onerror="this.onerror=null;this.src='${FALLBACK_IMG}'" loading="lazy">
-              <div class="related-card__body">
-                <div class="related-card__cat">${esc(a.category || 'NEWS')}</div>
-                <div class="related-card__title">${esc(a.title)}</div>
+          if (arr.length > 0) {
+            document.getElementById("relatedSection").style.display = "block";
+            document.getElementById("relatedGrid").innerHTML = arr.map(a => `
+              <div class="related-card" onclick="openArticle(${safeJSON(a)})">
+                <img src="${a.image_url || FALLBACK_IMG}" alt="${esc(a.title)}" 
+                     onerror="this.onerror=null;this.src='${FALLBACK_IMG}'" loading="lazy">
+                <div class="related-card__body">
+                  <div class="related-card__cat">${esc(a.category || 'NEWS')}</div>
+                  <div class="related-card__title">${esc(a.title)}</div>
+                </div>
               </div>
-            </div>
-          `).join("");
+            `).join("");
+          }
         }
-      } catch(e) { console.error("Supabase Related:", e); }
+      } catch(e) { console.error("API Related:", e); }
     }
 
     /* ---------- UTILS ---------- */
     window.openArticle = function(a) {
       if (a.id) {
-        if (window.supabaseClient) window.supabaseClient.rpc('increment_views', { row_id: a.id }).catch(console.error);
         window.location.href = `/article.html?id=${a.id}`;
       } else {
         localStorage.setItem("znn_article", JSON.stringify(a));
@@ -405,12 +378,6 @@
       if (diff < 60) return diff + "m ago";
       if (diff < 1440) return Math.floor(diff / 60) + "h ago";
       return Math.floor(diff / 1440) + "d ago";
-    }
-    function formatViews(n) {
-      if (!n) return '0';
-      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-      return n.toString();
     }
     function injectSchema(a) {
       const el = document.getElementById("articleSchema");
