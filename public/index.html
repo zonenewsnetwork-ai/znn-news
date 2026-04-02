@@ -88,13 +88,13 @@
     </div>
 
     <!-- APP -->
-    <div id="app" style="display:none">
+    <div id="app" style="display:block">
       <main class="wrap">
         <section id="heroMount"></section>
         <div class="main-grid">
           <section>
             <div class="sec-hd"><h2>Latest Stories</h2></div>
-            <div class="news-grid" id="mainMount"></div>
+            <div class="news-grid" id="news"></div>
             <div id="sentinel" style="padding:24px 0;text-align:center"></div>
           </section>
           <aside class="sidebar">
@@ -149,10 +149,11 @@
 
   <button class="s2t" id="s2t"><i class="fas fa-arrow-up"></i></button>
   <script src="ads-demo.js"></script>
-  <script src="script.js?v=10"></script>
 
   <!-- LIVE TV JS ENGINE -->
+  <script src="./script.js?v=1" defer></script>
   <script>
+    
   (function() {
     let allChannels = [];
     let currentFilter = "all";
