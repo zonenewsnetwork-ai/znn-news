@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            const url = id ? `/api/news?id=${id}` : `/api/news?slug=${slug}`;
+            const url = id ? `https://znn-news-zt5a.vercel.app/api/news?id=${id}` : `https://znn-news-zt5a.vercel.app/api/news?slug=${slug}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("API failure");
             
@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function loadRelated(cat, excludeId) {
         try {
-            const res = await fetch("/api/news");
+            const res = await fetch("https://znn-news-zt5a.vercel.app/api/news");
             if (!res.ok) throw new Error("API failure");
             
             let data = await res.json();

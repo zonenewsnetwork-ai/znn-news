@@ -11,8 +11,7 @@
   <link rel="icon" href="/logo.png">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="ads-injected.js"></script>
   <script type="application/ld+json" id="articleSchema">{}</script>
   <style>
@@ -248,7 +247,7 @@
       // 1. Try fetching by ID or slug via API
       if (id || slug) {
         try {
-          const url = id ? `/api/news?id=${id}` : `/api/news?slug=${slug}`;
+          const url = id ? `https://znn-news-zt5a.vercel.app/api/news?id=${id}` : `https://znn-news-zt5a.vercel.app/api/news?slug=${slug}`;
           const res = await fetch(url);
           if (res.ok) article = await res.json();
         } catch(e) { console.error("API fetch article error:", e); }
@@ -334,7 +333,7 @@
     /* ---------- RELATED ---------- */
     async function loadRelated(category, excludeId) {
       try {
-        const res = await fetch("/api/news");
+        const res = await fetch("https://znn-news-zt5a.vercel.app/api/news");
         if (res.ok) {
           let arr = await res.json();
           // Exclude current article

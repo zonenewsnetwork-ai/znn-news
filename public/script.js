@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const mapped = mapCategory(currentCat);
-      const url = mapped && mapped !== 'all' ? `/api/news?category=${mapped}` : "/api/news";
+      const url = mapped && mapped !== 'all' ? `https://znn-news-zt5a.vercel.app/api/news?category=${mapped}` : "https://znn-news-zt5a.vercel.app/api/news";
       console.log(`🔍 Fetching news from API: ${url}`);
 
       const response = await fetch(url);
@@ -132,6 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       console.log(`✅ Loaded ${data.length} articles. First title: "${data[0].title}"`);
       articles = data;
+      window.allNews = articles;
       render();
       loaded = true;
 
@@ -246,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadTrending() {
     if (!trendM) return;
     try {
-      const response = await fetch("/api/news");
+      const response = await fetch("https://znn-news-zt5a.vercel.app/api/news");
       const data = await response.json();
 
       if (!response.ok) throw new Error("API failed");
@@ -290,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tickerTrack || !tickerBar) return;
 
     try {
-      const response = await fetch("/api/news");
+      const response = await fetch("https://znn-news-zt5a.vercel.app/api/news");
       const data = await response.json();
 
       if (!response.ok) throw new Error("API failed");

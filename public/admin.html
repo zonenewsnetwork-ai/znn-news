@@ -260,7 +260,9 @@
       'Authorization': `Bearer ${idToken}`
     };
 
-    const res = await fetch(url, options);
+    const targetUrl = url.startsWith('/api') ? `https://znn-news-zt5a.vercel.app${url}` : url;
+
+    const res = await fetch(targetUrl, options);
     if (res.status === 401) {
       await signOut(auth);
       window.location.href = '/admin-login.html';

@@ -10,18 +10,11 @@
 
   async function loadAds() {
     try {
-      if (!window.supabaseClient) {
-        console.error("❌ Ads Injection: window.supabaseClient not available.");
-        return;
-      }
+      const res = await fetch('https://znn-news-zt5a.vercel.app/api/ads');
+      if (!res.ok) throw new Error("API failure");
+      const data = await res.json();
       
-      const { data, error } = await window.supabaseClient
-        .from('ads')
-        .select('*')
-        .eq('status', true);
-
-      if (error) throw error;
-      if (!data) return;
+      if (!data || data.length === 0) return;
 
       data.forEach(ad => {
         if (ad.placement === 'header') injectHeader(ad);

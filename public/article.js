@@ -3,16 +3,11 @@
    ✅ Uses window.sbClient (set in supabase-config.js)
    ========================================================== */
 document.addEventListener("DOMContentLoaded", () => {
-  const supabaseClient = window.supabaseClient;
-  const bar = document.getElementById("progressBar");
+    const bar = document.getElementById("progressBar");
   const s2t = document.getElementById("s2t");
   const trendM = document.getElementById("trendMount");
   const mreadM = document.getElementById("mostReadMount");
   const related = document.getElementById("relatedGrid");
-
-  if (!supabaseClient) {
-    console.error("❌ article.js: window.supabaseClient not available. Supabase queries will fail.");
-  }
 
   /* ---------- SCROLL PROGRESS ---------- */
   window.addEventListener("scroll", () => {
@@ -55,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (articleId) {
       try {
         console.log("📰 Loading article by ID:", articleId);
-        const res = await fetch(`/api/news?id=${articleId}`);
+        const res = await fetch(`https://znn-news-zt5a.vercel.app/api/news?id=${articleId}`);
         if (res.ok) {
           art = await res.json();
           console.log("✅ Article loaded from API:", art.title);
@@ -65,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!art && articleSlug) {
       try {
-        const res = await fetch(`/api/news?slug=${articleSlug}`);
+        const res = await fetch(`https://znn-news-zt5a.vercel.app/api/news?slug=${articleSlug}`);
         if (res.ok) {
           art = await res.json();
           console.log("✅ Article loaded by slug from API:", art.title);
@@ -137,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---------- SIDEBAR (API) ---------- */
   async function loadSidebar() {
     try {
-      const res = await fetch("/api/news");
+      const res = await fetch("https://znn-news-zt5a.vercel.app/api/news");
       if (res.ok) {
         const data = await res.json();
         if (data && data.length > 0) {
@@ -156,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadRelated() {
     if (!related) return;
     try {
-      const res = await fetch("/api/news");
+      const res = await fetch("https://znn-news-zt5a.vercel.app/api/news");
       if (res.ok) {
         let arr = await res.json();
         if (arr.length > 0) {
