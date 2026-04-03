@@ -1,0 +1,8 @@
+node_modules/
+.env
+server/config/*.json
+Wondershare/
+.vercel/
+.next/
+dist/
+build/

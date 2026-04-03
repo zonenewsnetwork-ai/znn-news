@@ -1,0 +1,27 @@
+{
+  "name": "znn-news",
+  "version": "1.0.0",
+  "description": "ZNN - Zone News Network",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.100.1",
+    "axios": "^1.13.6",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "firebase-admin": "^13.7.0",
+    "jsonwebtoken": "^9.0.3",
+    "node-cron": "^4.2.1",
+    "openai": "^6.33.0",
+    "rss-parser": "^3.13.0",
+    "slugify": "^1.6.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}

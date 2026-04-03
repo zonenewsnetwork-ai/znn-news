@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZNN – Zone News Network | Trusted Global Reporting</title>
+  <meta name="description" content="ZNN delivers breaking news, analysis, and in-depth reporting from around the globe.">
+  <meta name="robots" content="index,follow">
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-title" content="ZNN News">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/logo.png">
+  <link rel="apple-touch-icon" href="/logo.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- 1. Supabase CDN First -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 2. Supabase Config Second (Initializes window.supabaseClient) -->
+  <script src="supabase-config.js"></script>
+  <!-- 3. Ads Injection (Uses window.supabaseClient) -->
+  <script src="ads-injected.js"></script>
+  <style>
+    /* Ensure injected ads looks clean */
+    .ad-container { text-align: center; overflow: hidden; }
+  </style>
+</head>
+<body>
+
+  <!-- DRAWER (Mobile Full-Screen Nav) -->
+  <div class="drawer" id="drawer">
+    <div class="drawer__top">
+      <img src="/logo.png" alt="ZNN" style="height:22px">
+      <button class="drawer__close" id="drawerClose"><i class="fas fa-times"></i></button>
+    </div>
+    <ul class="drawer__links">
+      <li><a class="drawer__a nav-link" href="#" data-cat="all">Home</a></li>
+      <li><a class="drawer__a nav-link" href="#" data-cat="world">World</a></li>
+      <li><a class="drawer__a nav-link" href="#" data-cat="tech">Tech</a></li>
+      <li><a class="drawer__a nav-link" href="#" data-cat="business">Business</a></li>
+      <li><a class="drawer__a nav-link" href="#" data-cat="politics">Politics</a></li>
+      <li><a class="drawer__a nav-link" href="#" data-cat="entertainment">Entertainment</a></li>
+      <li><a class="drawer__a nav-link" href="#" data-cat="sports">Sports</a></li>
+      <li><a class="drawer__a nav-link" href="#" data-cat="science">Science</a></li>
+      <li><a class="drawer__a nav-link" href="#" id="liveDrawerBtn"><i class="fas fa-circle" style="font-size:8px;color:#e50914;margin-right:6px"></i>Live TV</a></li>
+    </ul>
+    
+    
+  </div>
+
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="wrap hdr__inner">
+      <button class="hdr__btn" id="menuBtn" aria-label="Menu"><i class="fas fa-bars"></i></button>
+      <a href="/" class="hdr__brand">
+        <img src="/logo.png" alt="ZNN" class="hdr__logo">
+        <span class="hdr__sub">Zone News Network</span>
+      </a>
+      <button class="hdr__btn" id="searchBtn" aria-label="Search"><i class="fas fa-search"></i></button>
+    </div>
+  </header>
+
+  <!-- NAV BAR -->
+  <nav class="nav-bar">
+    <div class="wrap nav-scroll" id="navScroll">
+      <a href="#" class="nav-a nav-link nav-a--on" data-cat="all" id="homeBtn">Home</a>
+      <a href="#" class="nav-a nav-link" data-cat="world">World</a>
+      <a href="#" class="nav-a nav-link" data-cat="tech">Tech</a>
+      <a href="#" class="nav-a nav-link" data-cat="business">Business</a>
+      <a href="#" class="nav-a nav-link" data-cat="politics">Politics</a>
+      <a href="#" class="nav-a nav-link" data-cat="entertainment">Entertainment</a>
+      <a href="#" class="nav-a nav-link" data-cat="sports">Sports</a>
+      <a href="#" class="nav-a nav-link" data-cat="science">Science</a>
+      <a href="#" class="nav-a nav-link" id="liveBtn" style="color:#e50914;font-weight:700"><i class="fas fa-circle" style="font-size:7px;margin-right:5px;animation: pulse-dot 1.5s ease-in-out infinite"></i> Live</a>
+    </div>
+  </nav>
+  
+  <div id="newsContainer">
+    <!-- SKELETON LOADER --> 
+    <div id="skel" class="wrap" style="margin-top:24px">
+      <div class="skel-card skel-hero"></div>
+      <div class="skel-row">
+        <div class="skel-card"></div>
+        <div class="skel-card"></div>
+        <div class="skel-card"></div>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <div id="app" style="display:none">
+      <main class="wrap">
+        <section id="heroMount"></section>
+        <div class="main-grid">
+          <section>
+            <div class="sec-hd"><h2>Latest Stories</h2></div>
+            <div class="news-grid" id="mainMount"></div>
+            <div id="sentinel" style="padding:24px 0;text-align:center"></div>
+          </section>
+          <aside class="sidebar">
+            <div id="sidebar-ads"></div>
+            <div class="sec-hd"><h2>Trending News</h2></div>
+            <ul class="t-list" id="trendMount"></ul>
+            <div class="sec-hd"><h2>Most Read</h2></div>
+            <ul class="t-list" id="mostReadMount"></ul>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- LIVE TV SECTION -->
+  <div id="liveContainer" style="display:none;">
+    <div class="wrap">
+      <div class="live-header">
+        <h2> Live TV News</h2>
+        <select id="languageFilter">
+          <option value="all">All Languages</option>
+          <option value="English">English</option>
+          <option value="Hindi">Hindi</option>
+          <option value="Telugu">Telugu</option>
+          <option value="Tamil">Tamil</option>
+          <option value="Kannada">Kannada</option>
+        </select>
+      </div>
+      <div id="live-container"></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="ftr">
+    <div class="wrap">
+      <div class="ftr__grid">
+        <div class="ftr__col">
+          <img src="/logo.png" alt="ZNN" style="height:22px;margin-bottom:14px">
+          <p>Delivering accurate, real-time journalism from every corner of the globe. Powered by AI-driven automation and vetted editorial standards.</p>
+        </div>
+        <div class="ftr__col">
+          <h4>Sections</h4>
+          <a href="/#world">World</a><br><a href="/#politics">Politics</a><br><a href="/#technology">Technology</a>
+        </div>
+        <div class="ftr__col">
+          <h4>Legal</h4>
+          <a href="/privacy.html">Privacy</a><br><a href="/terms.html">Terms</a><br><a href="/cookies.html">Cookies</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <button class="s2t" id="s2t"><i class="fas fa-arrow-up"></i></button>
+  <script src="ads-demo.js"></script>
+  <script src="script.js?v=10"></script>
+
+
+</body>
+</html>

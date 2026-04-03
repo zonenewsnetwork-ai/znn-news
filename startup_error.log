@@ -1,0 +1,37 @@
+﻿[dotenv@17.3.1] injecting env (6) from .env -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ≡ƒöÉ prevent building .env in docker: https://dotenvx.com/prebuild
+≡ƒÜÇ Starting ZNN News Platform...
+Γ£à Supabase Integrated
+≡ƒÜÇ Server running at http://localhost:3000
+≡ƒôí GNews: Starting ingestion for topic: [general]...
+node : Γ¥î GET LIVE ERROR: 
+Could not find the table 
+'public.live_tv' in the 
+schema cache
+At line:1 char:1
++ node server/server.js 
+2>&1 | Out-File -FilePath 
+d:\ZNN\startup_error. ...
++ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecifi    ed: 
+(Γ¥î GET LIVE     ER...he 
+schema cac    he:String) 
+[], Rem    oteException
+    + FullyQualifiedEr    
+rorId : NativeComm    
+andError
+ 
+≡ƒöä Scheduled News Fetch Triggered
+≡ƒòÆ GNews: Skipping fetch, cooldown active.
+[2026-03-29T17:31:41.267Z] 
+[PID: 23724] 
+[32m[NODE-CRON][32m 
+[33m[WARN][0m missed 
+execution at Sun Mar 29 
+2026 23:00:00 GMT+0530 
+(India Standard Time)! 
+Possible blocking IO or 
+high CPU user at the same 
+process used by node-cron.
